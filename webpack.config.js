@@ -2,6 +2,7 @@ const path = require('path');
 const RefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const port = process.env.PORT || 3000;
 
@@ -10,7 +11,8 @@ module.exports = {
 	mode: 'development',
 	devtool: 'source-map',
 	resolve: {
-		extensions: ['.js', '.jsx'],
+		modules: [path.join(__dirname, 'src'), 'node_modules'],
+		extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.json'],
 	},
 
 	entry: {
@@ -19,25 +21,17 @@ module.exports = {
 	module: {
 		rules: [
 			{
-				test: /\.(js|jsx)$/,
+				test: /\.(ts|js)x?$/,
 				exclude: /node_modules/,
-				loader: 'babel-loader',
-				options: {
-					presets: [
-						[
+				use: {
+					loader: 'babel-loader',
+					options: {
+						presets: [
 							'@babel/preset-env',
-							{
-								targets: {
-									browsers: ['> 1% in KR', 'not dead'],
-								},
-							},
+							'@babel/preset-react',
+							'@babel/preset-typescript',
 						],
-						'@babel/preset-react',
-					],
-					plugins: [
-						'@babel/plugin-proposal-class-properties',
-						'react-refresh/babel',
-					],
+					},
 				},
 			},
 			{
@@ -69,6 +63,9 @@ module.exports = {
 			template: 'public/index.html',
 		}),
 		new MiniCssExtractPlugin({ filename: 'public/styles/style.css' }),
+		new CleanWebpackPlugin({
+			cleanAfterEveryBuildPatterns: ['public/build'],
+		}),
 	],
 	output: {
 		path: path.join(__dirname, 'dist'),
