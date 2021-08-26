@@ -17,7 +17,14 @@
 		"skipLibCheck": true,
 		"strict": true,
 		"target": "es5",
-		"sourceMap": true
+		"sourceMap": true,
+		"baseUrl": ".",
+		"paths": {
+			"@hooks/*": ["hooks/*"],
+			"@components/*": ["components/*"],
+			"@pages/*": ["pages/*"],
+			"@utils/*": ["utils/*"]
+		}
 	},
 	"exclude": ["node_modules"],
 	"include": ["**/*.ts", "**/*.tsx"]

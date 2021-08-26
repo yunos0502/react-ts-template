@@ -3,16 +3,23 @@ const RefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const port = process.env.PORT || 3000;
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
 module.exports = {
 	name: 'React basic setting',
-	mode: 'development',
-	devtool: 'source-map',
+	mode: isDevelopment ? 'development' : 'production',
+	devtool: !isDevelopment ? 'hidden-source-map' : 'eval',
 	resolve: {
-		modules: [path.join(__dirname, 'src'), 'node_modules'],
 		extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.json'],
+		alias: {
+			'@hooks': path.resolve(__dirname, 'hooks'),
+			'@components': path.resolve(__dirname, 'components'),
+			'@pages': path.resolve(__dirname, 'pages'),
+			'@utils': path.resolve(__dirname, 'utils'),
+		},
 	},
 
 	entry: {
@@ -27,12 +34,24 @@ module.exports = {
 					loader: 'babel-loader',
 					options: {
 						presets: [
-							'@babel/preset-env',
+							[
+								'@babel/preset-env',
+								{
+									targets: { browsers: ['last 2 chrome versions'] },
+									debug: isDevelopment,
+								},
+							],
 							'@babel/preset-react',
 							'@babel/preset-typescript',
 						],
+						env: {
+							development: {
+								plugins: [require.resolve('react-refresh/babel')],
+							},
+						},
 					},
 				},
+				exclude: path.join(__dirname, 'node_modules'),
 			},
 			{
 				test: /\.html$/,
@@ -58,6 +77,9 @@ module.exports = {
 		],
 	},
 	plugins: [
+		new ForkTsCheckerWebpackPlugin({
+			async: false,
+		}),
 		new RefreshWebpackPlugin(),
 		new HtmlWebpackPlugin({
 			template: 'public/index.html',
@@ -72,9 +94,16 @@ module.exports = {
 		filename: 'bundle.[hash].js',
 	},
 	devServer: {
+		historyApiFallback: true,
 		host: 'localhost',
 		port: port,
 		open: true,
 		hot: true,
+		proxy: {
+			'/api/': {
+				target: 'http://localhost:3000',
+				changeOrigin: true,
+			},
+		},
 	},
 };
